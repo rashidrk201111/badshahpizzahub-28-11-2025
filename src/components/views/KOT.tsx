@@ -48,6 +48,7 @@ export function KOT() {
   const [orderTypeFilter, setOrderTypeFilter] = useState<string>('all');
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState<any>(null);
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
 
   const [formData, setFormData] = useState({
     order_type: 'dine_in' as 'dine_in' | 'delivery' | 'take_away',
@@ -58,6 +59,10 @@ export function KOT() {
     custom_delivery_platform: '',
     delivery_order_id: '',
     notes: '',
+    payment_method: 'cash' as 'cash' | 'upi' | 'card' | 'split',
+    cash_amount: '',
+    upi_amount: '',
+    card_amount: '',
   });
 
   useEffect(() => {
@@ -391,6 +396,10 @@ export function KOT() {
         custom_delivery_platform: isCustomPlatform ? kot.delivery_platform || '' : '',
         delivery_order_id: kot.delivery_order_id || '',
         notes: kot.notes || '',
+        payment_method: 'cash',
+        cash_amount: '',
+        upi_amount: '',
+        card_amount: '',
       });
       setSelectedItems(items || []);
       setShowModal(true);
@@ -667,9 +676,14 @@ export function KOT() {
       custom_delivery_platform: '',
       delivery_order_id: '',
       notes: '',
+      payment_method: 'cash',
+      cash_amount: '',
+      upi_amount: '',
+      card_amount: '',
     });
     setSelectedItems([]);
     setEditingKOT(null);
+    setMenuSearchQuery('');
   };
 
   const orderTypeIcons = {
@@ -1003,8 +1017,23 @@ export function KOT() {
               <div className="border-t border-slate-200 pt-6">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">Select Menu Items</h3>
 
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search menu items..."
+                      value={menuSearchQuery}
+                      onChange={(e) => setMenuSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 max-h-60 overflow-y-auto p-2">
-                  {menuItems.map((item) => (
+                  {menuItems
+                    .filter(item => item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()))
+                    .map((item) => (
                     <button
                       key={item.id}
                       type="button"
@@ -1018,9 +1047,108 @@ export function KOT() {
                 </div>
 
                 {selectedItems.length > 0 && (
-                  <div className="bg-slate-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-slate-900 mb-3">Selected Items</h4>
-                    <div className="space-y-2">
+                  <>
+                    <div className="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
+                      <h4 className="font-semibold text-slate-900 mb-3">Payment Method</h4>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, payment_method: 'cash' })}
+                          className={`p-3 rounded-lg border-2 transition ${
+                            formData.payment_method === 'cash'
+                              ? 'border-green-500 bg-green-50 text-green-700'
+                              : 'border-slate-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="font-semibold text-sm">Cash</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, payment_method: 'upi' })}
+                          className={`p-3 rounded-lg border-2 transition ${
+                            formData.payment_method === 'upi'
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-slate-200 hover:border-blue-300'
+                          }`}
+                        >
+                          <div className="font-semibold text-sm">UPI</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, payment_method: 'card' })}
+                          className={`p-3 rounded-lg border-2 transition ${
+                            formData.payment_method === 'card'
+                              ? 'border-purple-500 bg-purple-50 text-purple-700'
+                              : 'border-slate-200 hover:border-purple-300'
+                          }`}
+                        >
+                          <div className="font-semibold text-sm">Card</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, payment_method: 'split' })}
+                          className={`p-3 rounded-lg border-2 transition ${
+                            formData.payment_method === 'split'
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-slate-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <div className="font-semibold text-sm">Split</div>
+                        </button>
+                      </div>
+
+                      {formData.payment_method === 'split' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-blue-200">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Cash Amount
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={formData.cash_amount}
+                              onChange={(e) => setFormData({ ...formData, cash_amount: e.target.value })}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              UPI Amount
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={formData.upi_amount}
+                              onChange={(e) => setFormData({ ...formData, upi_amount: e.target.value })}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Card Amount
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={formData.card_amount}
+                              onChange={(e) => setFormData({ ...formData, card_amount: e.target.value })}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-slate-900 mb-3">Selected Items</h4>
+                      <div className="space-y-2">
                       {selectedItems.map((item) => (
                         <div key={item.menu_item_id} className="flex items-center justify-between gap-4 bg-white p-3 rounded-lg">
                           <div className="flex-1">
@@ -1061,6 +1189,7 @@ export function KOT() {
                       </div>
                     </div>
                   </div>
+                  </>
                 )}
               </div>
 
