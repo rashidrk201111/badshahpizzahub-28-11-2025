@@ -1,6 +1,6 @@
-import React from 'react';
-import { format } from 'date-fns';
-import { X, Printer } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Printer, Utensils, Truck, ShoppingBag } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface InvoiceItem {
   menu_item_id: string;
@@ -28,121 +28,264 @@ interface InvoicePreviewProps {
 }
 
 export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, items, onClose }) => {
+  const [companyProfile, setCompanyProfile] = useState<any>(null);
+
+  useEffect(() => {
+    loadCompanyProfile();
+  }, []);
+
+  const loadCompanyProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('company_profile')
+        .select('*')
+        .maybeSingle();
+
+      if (error) throw error;
+      setCompanyProfile(data);
+    } catch (error) {
+      console.error('Error loading company profile:', error);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
+  const orderTypeIcons = {
+    dine_in: <Utensils className="w-5 h-5" />,
+    delivery: <Truck className="w-5 h-5" />,
+    take_away: <ShoppingBag className="w-5 h-5" />
+  };
+
+  const orderTypeLabels = {
+    dine_in: 'DINE IN',
+    delivery: 'DELIVERY',
+    take_away: 'TAKE AWAY'
+  };
+
+  const orderTypeColors = {
+    dine_in: '#10b981',
+    delivery: '#f59e0b',
+    take_away: '#3b82f6'
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 print:bg-white print:relative print:inset-auto">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl print:shadow-none print:max-w-full">
-        {/* Header */}
-        <div className="bg-red-600 text-white p-6 rounded-t-lg print:flex print:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">INVOICE</h2>
-            <p className="text-red-100">Badshah Pizza Hub</p>
-          </div>
-          <div className="text-right mt-4 print:mt-0">
-            <p className="text-sm">Invoice #: {invoice.invoice_number || 'N/A'}</p>
-            <p className="text-sm">Date: {format(new Date(invoice.created_at), 'dd/MM/yyyy')}</p>
-            <p className="text-sm">Time: {format(new Date(invoice.created_at), 'HH:mm')}</p>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full my-8">
+        <div className="flex justify-between items-center p-6 border-b border-slate-200 print:hidden">
+          <h2 className="text-2xl font-bold text-slate-900">Invoice Preview</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Printer size={18} /> Print
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-200 text-slate-900 rounded-lg hover:bg-slate-300 flex items-center gap-2"
+            >
+              <X size={18} /> Close
+            </button>
           </div>
         </div>
 
-        {/* Order Info */}
-        <div className="p-6 border-b">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold text-gray-700">Bill To:</h3>
-              <p className="text-gray-800">{invoice.customer_name || 'Walk-in Customer'}</p>
-              {invoice.customer_phone && <p className="text-gray-600">Phone: {invoice.customer_phone}</p>}
-              {invoice.table_number && <p className="text-gray-600">Table: {invoice.table_number}</p>}
-              <span 
-                className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
-                  invoice.order_type === 'dine_in' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : invoice.order_type === 'delivery' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-purple-100 text-purple-800'
-                }`}
+        <div className="overflow-auto max-h-[70vh] print:max-h-none print:overflow-visible">
+          <div
+            id="invoice-content"
+            className="p-8 print:p-0"
+            style={{
+              fontFamily: "'Courier New', monospace",
+              maxWidth: '80mm',
+              margin: '0 auto',
+              fontSize: '12px',
+              lineHeight: '1.4'
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              textAlign: 'center',
+              marginBottom: '10px',
+              paddingBottom: '10px',
+              borderBottom: '2px solid #000'
+            }}>
+              <h1 style={{ fontSize: '18px', marginBottom: '5px', fontWeight: 'bold' }}>
+                {companyProfile?.company_name || 'Restaurant'}
+              </h1>
+              {companyProfile && (
+                <div style={{ fontSize: '10px' }}>
+                  {companyProfile.address_line1 && <div>{companyProfile.address_line1}</div>}
+                  {companyProfile.phone && <div>Tel: {companyProfile.phone}</div>}
+                  {companyProfile.gst_number && <div>GST: {companyProfile.gst_number}</div>}
+                </div>
+              )}
+              <div style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '8px' }}>ORDER RECEIPT</div>
+              <div
+                style={{
+                  display: 'inline-block',
+                  padding: '6px 12px',
+                  margin: '8px 0',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  color: 'white',
+                  backgroundColor: orderTypeColors[invoice.order_type]
+                }}
               >
-                {invoice.order_type === 'dine_in' ? 'Dine In' : 
-                 invoice.order_type === 'delivery' ? 'Delivery' : 'Take Away'}
-              </span>
+                {orderTypeLabels[invoice.order_type]}
+              </div>
             </div>
-            <div className="md:text-right mt-4 md:mt-0">
-              <h3 className="font-semibold text-gray-700">Order Summary</h3>
-              <p className="text-gray-600">Items: {items.length}</p>
-              <p className="text-gray-600">Subtotal: ₹{invoice.subtotal?.toFixed(2) || '0.00'}</p>
-              <p className="text-gray-600">Tax (5%): ₹{invoice.tax?.toFixed(2) || '0.00'}</p>
-              <p className="text-lg font-bold mt-2">Total: ₹{invoice.total?.toFixed(2) || '0.00'}</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Items List */}
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Item
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Qty
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
+            {/* Info */}
+            <div style={{
+              marginBottom: '10px',
+              paddingBottom: '10px',
+              borderBottom: '1px dashed #000',
+              fontSize: '11px'
+            }}>
+              <div style={{ marginBottom: '3px' }}>
+                <span style={{ fontWeight: 'bold', display: 'inline-block', width: '80px' }}>Order:</span>
+                {invoice.invoice_number || 'N/A'}
+              </div>
+              <div style={{ marginBottom: '3px' }}>
+                <span style={{ fontWeight: 'bold', display: 'inline-block', width: '80px' }}>Date:</span>
+                {new Date(invoice.created_at).toLocaleDateString('en-IN')}
+              </div>
+              <div style={{ marginBottom: '3px' }}>
+                <span style={{ fontWeight: 'bold', display: 'inline-block', width: '80px' }}>Time:</span>
+                {new Date(invoice.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              {invoice.order_type === 'dine_in' && invoice.table_number && (
+                <div style={{ marginBottom: '3px' }}>
+                  <span style={{ fontWeight: 'bold', display: 'inline-block', width: '80px' }}>Table:</span>
+                  {invoice.table_number}
+                </div>
+              )}
+              {invoice.customer_name && (
+                <div style={{ marginBottom: '3px' }}>
+                  <span style={{ fontWeight: 'bold', display: 'inline-block', width: '80px' }}>Customer:</span>
+                  {invoice.customer_name}
+                </div>
+              )}
+              {invoice.customer_phone && (
+                <div style={{ marginBottom: '3px' }}>
+                  <span style={{ fontWeight: 'bold', display: 'inline-block', width: '80px' }}>Phone:</span>
+                  {invoice.customer_phone}
+                </div>
+              )}
+            </div>
+
+            {/* Items Table */}
+            <table style={{ width: '100%', marginBottom: '10px', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #000' }}>
+                  <th style={{ textAlign: 'left', padding: '5px 0', fontSize: '11px' }}>Item</th>
+                  <th style={{ textAlign: 'center', padding: '5px 0', fontSize: '11px', width: '30px' }}>Qty</th>
+                  <th style={{ textAlign: 'right', padding: '5px 0', fontSize: '11px', width: '60px' }}>Price</th>
+                  <th style={{ textAlign: 'right', padding: '5px 0', fontSize: '11px', width: '60px' }}>Total</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {items.map((item, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={index} style={{ borderBottom: '1px dashed #ddd' }}>
+                    <td style={{ padding: '5px 0', fontSize: '11px', fontWeight: 'bold' }}>
                       {item.menu_item_name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    <td style={{ padding: '5px 0', fontSize: '11px', textAlign: 'center' }}>
                       {item.quantity}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                      ₹{item.unit_price?.toFixed(2) || '0.00'}
+                    <td style={{ padding: '5px 0', fontSize: '11px', textAlign: 'right' }}>
+                      ₹{parseFloat(String(item.unit_price)).toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
-                      ₹{((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}
+                    <td style={{ padding: '5px 0', fontSize: '11px', textAlign: 'right' }}>
+                      ₹{(parseFloat(String(item.quantity)) * parseFloat(String(item.unit_price))).toFixed(2)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
 
-        {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex flex-col sm:flex-row justify-between items-center gap-4 print:hidden">
-          <div>
-            <p className="text-sm text-gray-500">Thank you for dining with us!</p>
-            <p className="text-xs text-gray-400">For any queries, please contact: +91 1234567890</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-            >
-              <X size={16} /> Close
-            </button>
-            <button
-              onClick={handlePrint}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 flex items-center gap-2"
-            >
-              <Printer size={16} /> Print Invoice
-            </button>
+            {/* Totals */}
+            <div style={{
+              marginTop: '10px',
+              paddingTop: '10px',
+              borderTop: '1px solid #000'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '5px',
+                fontSize: '11px'
+              }}>
+                <span>Subtotal:</span>
+                <span>₹{invoice.subtotal.toFixed(2)}</span>
+              </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '5px',
+                fontSize: '11px'
+              }}>
+                <span>Tax (5%):</span>
+                <span>₹{invoice.tax.toFixed(2)}</span>
+              </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                paddingTop: '5px',
+                borderTop: '2px solid #000'
+              }}>
+                <span>TOTAL:</span>
+                <span>₹{invoice.total.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              textAlign: 'center',
+              marginTop: '15px',
+              paddingTop: '10px',
+              borderTop: '1px dashed #000',
+              fontSize: '11px'
+            }}>
+              <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>Thank You!</div>
+              <div>Please visit again</div>
+              {companyProfile?.website && <div>{companyProfile.website}</div>}
+            </div>
+
+            {/* Timestamp */}
+            <div style={{
+              textAlign: 'center',
+              fontSize: '10px',
+              marginTop: '10px',
+              color: '#666'
+            }}>
+              Printed: {new Date().toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
       </div>
+
+      <style>
+        {`
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            #invoice-content {
+              padding: 5mm !important;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
