@@ -55,6 +55,7 @@ export function KOT() {
     customer_name: '',
     customer_phone: '',
     delivery_platform: '',
+    custom_delivery_platform: '',
     delivery_order_id: '',
     notes: '',
   });
@@ -161,7 +162,7 @@ export function KOT() {
       if (formData.order_type === 'dine_in') {
         kotData.table_number = formData.table_number;
       } else if (formData.order_type === 'delivery') {
-        kotData.delivery_platform = formData.delivery_platform || null;
+        kotData.delivery_platform = formData.delivery_platform === 'other' ? formData.custom_delivery_platform : formData.delivery_platform || null;
         kotData.delivery_order_id = formData.delivery_order_id || null;
       }
 
@@ -376,12 +377,18 @@ export function KOT() {
       if (error) throw error;
 
       setEditingKOT(kot);
+
+      // Check if delivery platform is one of the predefined options
+      const predefinedPlatforms = ['zomato', 'swiggy', 'jedlo', 'crisf_food'];
+      const isCustomPlatform = kot.delivery_platform && !predefinedPlatforms.includes(kot.delivery_platform.toLowerCase());
+
       setFormData({
         order_type: kot.order_type,
         table_number: kot.table_number || '',
         customer_name: kot.customer_name || '',
         customer_phone: kot.customer_phone || '',
-        delivery_platform: kot.delivery_platform || '',
+        delivery_platform: isCustomPlatform ? 'other' : (kot.delivery_platform || ''),
+        custom_delivery_platform: isCustomPlatform ? kot.delivery_platform || '' : '',
         delivery_order_id: kot.delivery_order_id || '',
         notes: kot.notes || '',
       });
@@ -883,6 +890,7 @@ export function KOT() {
       customer_name: '',
       customer_phone: '',
       delivery_platform: '',
+      custom_delivery_platform: '',
       delivery_order_id: '',
       notes: '',
     });
@@ -1162,14 +1170,34 @@ export function KOT() {
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Delivery Platform
                       </label>
-                      <input
-                        type="text"
-                        placeholder="e.g., Zomato, Swiggy"
+                      <select
                         value={formData.delivery_platform}
-                        onChange={(e) => setFormData({ ...formData, delivery_platform: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, delivery_platform: e.target.value, custom_delivery_platform: '' })}
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                      >
+                        <option value="">Select Platform</option>
+                        <option value="zomato">Zomato</option>
+                        <option value="swiggy">Swiggy</option>
+                        <option value="jedlo">Jedlo</option>
+                        <option value="crisf_food">Crisf Food</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
+
+                    {formData.delivery_platform === 'other' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Custom Platform Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter platform name"
+                          value={formData.custom_delivery_platform}
+                          onChange={(e) => setFormData({ ...formData, custom_delivery_platform: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
