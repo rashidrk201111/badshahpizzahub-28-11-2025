@@ -130,7 +130,6 @@ export function InvoiceView({ invoiceId, onClose }: InvoiceViewProps) {
       const profileRes = await supabase
         .from('company_profile')
         .select('*')
-        .eq('user_id', invoiceRes.data.created_by)
         .maybeSingle();
 
       setInvoiceData(invoiceRes.data);
