@@ -877,24 +877,16 @@ export function KOT() {
     setEditingKOT(null);
   };
 
-  const handleAddItem = (item) => {
-    // Add item to selected items here
+  const orderTypeIcons = {
+    dine_in: <Utensils className="w-4 h-4" />,
+    delivery: <Truck className="w-4 h-4" />,
+    take_away: <ShoppingBag className="w-4 h-4" />
   };
 
-  const handleUpdateQuantity = (id, quantity) => {
-    // Update item quantity here
-  };
-
-  const handleRemoveItem = (id) => {
-    // Remove item from selected items here
-  };
-
-  const calculateTotal = () => {
-    // Calculate total here
-  };
-
-  const formatINR = (price) => {
-    // Format INR here
+  const orderTypeLabels = {
+    dine_in: 'Dine In',
+    delivery: 'Delivery',
+    take_away: 'Take Away'
   };
 
   const filteredKOTs = kots.filter((kot) => {
@@ -1273,159 +1265,20 @@ export function KOT() {
                   className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
                 >
                   {editingKOT ? 'Update KOT' : 'Create KOT'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Customer Name
-          </label>
-          <input
-            type="text"
-            value={formData.customer_name}
-            onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
         </div>
+      )}
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Customer Phone
-          </label>
-          <input
-            type="tel"
-            value={formData.customer_phone}
-            onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        {formData.order_type === 'delivery' && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Delivery Platform
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Zomato, Swiggy"
-                value={formData.delivery_platform}
-                onChange={(e) => setFormData({ ...formData, delivery_platform: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Platform Order ID
-              </label>
-              <input
-                type="text"
-                value={formData.delivery_order_id}
-                onChange={(e) => setFormData({ ...formData, delivery_order_id: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+      {showInvoicePreview && currentInvoice && (
+        <InvoicePreview
+          invoice={currentInvoice}
+          items={currentInvoice.items || []}
+          onClose={() => setShowInvoicePreview(false)}
+        />
+      )}
     </div>
-  )}
-</div>
-
-<div className="flex gap-4 pt-6 border-t border-slate-200">
-  <button
-    type="button"
-    onClick={() => {
-      setShowModal(false);
-      resetForm();
-    }}
-    className="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg transition"
-  >
-    Cancel
-  </button>
-  <button
-    type="submit"
-    className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
-  >
-    {editingKOT ? 'Update KOT' : 'Create KOT'}
-  </button>
-</div>
-
-<div>
-  <label className="block text-sm font-medium text-slate-700 mb-2">
-    Customer Name
-  </label>
-  <input
-    type="text"
-    value={formData.customer_name}
-    onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-  />
-</div>
-
-<div>
-  <label className="block text-sm font-medium text-slate-700 mb-2">
-    Customer Phone
-  </label>
-  <input
-    type="tel"
-    value={formData.customer_phone}
-    onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-  />
-</div>
-
-{formData.order_type === 'delivery' && (
-  <>
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-2">
-        Delivery Platform
-      </label>
-      <input
-        type="text"
-        placeholder="e.g., Zomato, Swiggy"
-        value={formData.delivery_platform}
-        onChange={(e) => setFormData({ ...formData, delivery_platform: e.target.value })}
-        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
-    </div>
-
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-2">
-        Platform Order ID
-      </label>
-      <input
-        type="text"
-        value={formData.delivery_order_id}
-        onChange={(e) => setFormData({ ...formData, delivery_order_id: e.target.value })}
-        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
-    </div>
-  </>
-)}
-
-<div>
-  <label className="block text-sm font-medium text-slate-700 mb-2">
-    Notes
-  </label>
-  <textarea
-    value={formData.notes}
-    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-    rows={2}
-    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-  />
-</div>
-
-{/* Invoice Preview Modal */}
-{showInvoicePreview && currentInvoice && (
-  <InvoicePreview
-    invoice={currentInvoice}
-    items={currentInvoice.items || []}
-    onClose={() => setShowInvoicePreview(false)}
-  />
-)}
-</div>
+  );
+}
