@@ -308,12 +308,25 @@ export function KOT() {
 
         if (itemsError) throw itemsError;
 
-        setCurrentInvoice({ ...invoice, items });
+        setCurrentInvoice({
+          ...invoice,
+          items,
+          customer_name: kot.customer_name,
+          customer_phone: kot.customer_phone,
+          table_number: kot.table_number,
+          order_type: kot.order_type
+        });
         setShowInvoicePreview(true);
       } else {
         // If no invoice exists, create one first
         const invoice = await createInvoiceForKOT(kot);
-        setCurrentInvoice(invoice);
+        setCurrentInvoice({
+          ...invoice,
+          customer_name: kot.customer_name,
+          customer_phone: kot.customer_phone,
+          table_number: kot.table_number,
+          order_type: kot.order_type
+        });
         setShowInvoicePreview(true);
       }
     } catch (error) {
