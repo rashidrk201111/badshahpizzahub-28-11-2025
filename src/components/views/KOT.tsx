@@ -162,6 +162,10 @@ export function KOT() {
         notes: formData.notes || null,
         user_id: user?.id,
         status: 'pending',
+        payment_method: formData.payment_method,
+        cash_amount: formData.payment_method === 'split' ? parseFloat(formData.cash_amount || '0') : 0,
+        upi_amount: formData.payment_method === 'split' ? parseFloat(formData.upi_amount || '0') : 0,
+        card_amount: formData.payment_method === 'split' ? parseFloat(formData.card_amount || '0') : 0,
       };
 
       if (formData.order_type === 'dine_in') {
@@ -396,10 +400,10 @@ export function KOT() {
         custom_delivery_platform: isCustomPlatform ? kot.delivery_platform || '' : '',
         delivery_order_id: kot.delivery_order_id || '',
         notes: kot.notes || '',
-        payment_method: 'cash',
-        cash_amount: '',
-        upi_amount: '',
-        card_amount: '',
+        payment_method: (kot as any).payment_method || 'cash',
+        cash_amount: (kot as any).cash_amount?.toString() || '',
+        upi_amount: (kot as any).upi_amount?.toString() || '',
+        card_amount: (kot as any).card_amount?.toString() || '',
       });
       setSelectedItems(items || []);
       setShowModal(true);
@@ -771,6 +775,7 @@ export function KOT() {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">KOT #</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Details</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Payment</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Status</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Time</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold text-slate-600">Actions</th>
@@ -790,6 +795,25 @@ export function KOT() {
                     {kot.order_type === 'dine_in' && <div>Table: {kot.table_number}</div>}
                     {kot.customer_name && <div>{kot.customer_name}</div>}
                     {kot.delivery_platform && <div>{kot.delivery_platform}</div>}
+                  </td>
+                  <td className="px-4 py-3">
+                    {(kot as any).payment_method === 'split' ? (
+                      <div className="text-xs">
+                        <div className="font-medium text-orange-700 mb-1">Split Payment</div>
+                        {(kot as any).cash_amount > 0 && <div className="text-slate-600">Cash: {formatINR((kot as any).cash_amount)}</div>}
+                        {(kot as any).upi_amount > 0 && <div className="text-slate-600">UPI: {formatINR((kot as any).upi_amount)}</div>}
+                        {(kot as any).card_amount > 0 && <div className="text-slate-600">Card: {formatINR((kot as any).card_amount)}</div>}
+                      </div>
+                    ) : (
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        (kot as any).payment_method === 'cash' ? 'bg-green-100 text-green-700' :
+                        (kot as any).payment_method === 'upi' ? 'bg-blue-100 text-blue-700' :
+                        (kot as any).payment_method === 'card' ? 'bg-purple-100 text-purple-700' :
+                        'bg-slate-100 text-slate-700'
+                      }`}>
+                        {((kot as any).payment_method || 'cash').toUpperCase()}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <select
