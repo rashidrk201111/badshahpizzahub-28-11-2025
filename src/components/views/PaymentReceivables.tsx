@@ -161,6 +161,9 @@ export function PaymentReceivables() {
           .single();
 
         for (const item of invoiceItems || []) {
+          // Skip items without product_id (e.g., KOT menu items)
+          if (!item.product_id) continue;
+
           const { data: product } = await supabase
             .from('products')
             .select('quantity')
@@ -221,9 +224,10 @@ export function PaymentReceivables() {
   };
 
   const filteredInvoices = invoices.filter(invoice => {
+    const customerName = invoice.customer?.name || (invoice as any).customer_name || '';
     const matchesSearch =
       invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.customer?.name.toLowerCase().includes(searchTerm.toLowerCase());
+      customerName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilter = filterStatus === 'all' || invoice.payment_status === filterStatus;
 
@@ -364,8 +368,8 @@ export function PaymentReceivables() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-900">
                         <div>
-                          <div className="font-medium">{invoice.customer?.name}</div>
-                          <div className="text-xs text-slate-500">{invoice.customer?.phone}</div>
+                          <div className="font-medium">{invoice.customer?.name || (invoice as any).customer_name || 'Walk-in Customer'}</div>
+                          <div className="text-xs text-slate-500">{invoice.customer?.phone || (invoice as any).customer_phone || '-'}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-900">

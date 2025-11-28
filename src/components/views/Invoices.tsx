@@ -203,6 +203,9 @@ export function Invoices() {
         if (itemsError) throw itemsError;
 
         for (const item of invoiceItems || []) {
+          // Skip items without product_id (e.g., KOT menu items)
+          if (!item.product_id) continue;
+
           const { data: product, error: productError } = await supabase
             .from('products')
             .select('quantity')
