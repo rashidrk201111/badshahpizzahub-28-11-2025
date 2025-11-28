@@ -286,9 +286,8 @@ export function KOT() {
       const { error: itemsError } = await supabase.from('invoice_items').insert(invoiceItems);
       if (itemsError) throw itemsError;
 
-      await supabase.from('kots').update({ 
-        invoice_id: invoice.id,
-        status: 'invoiced' 
+      await supabase.from('kots').update({
+        invoice_id: invoice.id
       }).eq('id', kot.id);
 
       // Return the created invoice with items for preview

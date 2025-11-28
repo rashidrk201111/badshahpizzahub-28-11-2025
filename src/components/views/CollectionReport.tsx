@@ -61,7 +61,7 @@ export function CollectionReport() {
         .select('order_type, delivery_platform, payment_method, cash_amount, upi_amount, card_amount, kot_items(quantity, unit_price)')
         .gte('created_at', startDateTime)
         .lte('created_at', endDateTime)
-        .in('status', ['served', 'ready', 'preparing']);
+        .eq('status', 'served');
 
       if (error) throw error;
 
