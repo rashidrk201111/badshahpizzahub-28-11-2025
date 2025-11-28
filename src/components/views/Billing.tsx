@@ -43,6 +43,7 @@ export function Billing() {
     customer_name: '',
     customer_phone: '',
     payment_method: 'cash',
+    custom_payment_method: '',
     payment_status: 'paid',
     notes: '',
   });
@@ -147,7 +148,7 @@ export function Billing() {
             tax_amount: taxAmount,
             total_amount: total,
             payment_status: formData.payment_status,
-            payment_method: formData.payment_method,
+            payment_method: formData.payment_method === 'other' ? formData.custom_payment_method : formData.payment_method,
             notes: formData.notes,
           })
           .eq('id', editingBill.id);
@@ -187,7 +188,7 @@ export function Billing() {
             tax_amount: taxAmount,
             total_amount: total,
             payment_status: formData.payment_status,
-            payment_method: formData.payment_method,
+            payment_method: formData.payment_method === 'other' ? formData.custom_payment_method : formData.payment_method,
             notes: formData.notes,
           })
           .select()
@@ -220,6 +221,7 @@ export function Billing() {
         customer_name: '',
         customer_phone: '',
         payment_method: 'cash',
+        custom_payment_method: '',
         payment_status: 'paid',
         notes: '',
       });
@@ -241,10 +243,16 @@ export function Billing() {
       if (error) throw error;
 
       setEditingBill(bill);
+
+      // Check if payment method is one of the predefined options
+      const predefinedMethods = ['cash', 'card', 'upi', 'zomato', 'swiggy', 'jedlo', 'crisf_food'];
+      const isCustom = !predefinedMethods.includes(bill.payment_method.toLowerCase());
+
       setFormData({
         customer_name: bill.customer_name || '',
         customer_phone: bill.customer_phone || '',
-        payment_method: bill.payment_method,
+        payment_method: isCustom ? 'other' : bill.payment_method,
+        custom_payment_method: isCustom ? bill.payment_method : '',
         payment_status: bill.payment_status,
         notes: bill.notes || '',
       });
@@ -610,16 +618,37 @@ export function Billing() {
                   <select
                     value={formData.payment_method}
                     onChange={(e) =>
-                      setFormData({ ...formData, payment_method: e.target.value })
+                      setFormData({ ...formData, payment_method: e.target.value, custom_payment_method: '' })
                     }
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   >
                     <option value="cash">Cash</option>
                     <option value="card">Card</option>
                     <option value="upi">UPI</option>
+                    <option value="zomato">Zomato</option>
+                    <option value="swiggy">Swiggy</option>
+                    <option value="jedlo">Jedlo</option>
+                    <option value="crisf_food">Crisf Food</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
+
+                {formData.payment_method === 'other' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Custom Payment Method
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.custom_payment_method}
+                      onChange={(e) =>
+                        setFormData({ ...formData, custom_payment_method: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter payment method"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
