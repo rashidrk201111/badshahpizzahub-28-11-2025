@@ -6,6 +6,7 @@ import { Inventory } from './components/views/Inventory';
 import { InventoryTrack } from './components/views/InventoryTrack';
 import Menu from './components/views/Menu';
 import { KOT } from './components/views/KOT';
+import { CollectionReport } from './components/views/CollectionReport';
 import { Invoices } from './components/views/Invoices';
 import { Customers } from './components/views/Customers';
 import { Accounting } from './components/views/Accounting';
@@ -50,6 +51,8 @@ function AppContent() {
             return <Menu />;
           case 'kot':
             return <KOT />;
+          case 'collection-report':
+            return <CollectionReport />;
           case 'invoices':
             return <Invoices />;
           case 'customers':
