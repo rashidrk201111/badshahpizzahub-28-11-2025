@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Printer, Utensils, Truck, ShoppingBag } from 'lucide-react';
+import { X, Printer } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface InvoiceItem {
@@ -52,12 +52,6 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, items, 
     window.print();
   };
 
-  const orderTypeIcons = {
-    dine_in: <Utensils className="w-5 h-5" />,
-    delivery: <Truck className="w-5 h-5" />,
-    take_away: <ShoppingBag className="w-5 h-5" />
-  };
-
   const orderTypeLabels = {
     dine_in: 'DINE IN',
     delivery: 'DELIVERY',
@@ -72,7 +66,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, items, 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full my-8">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full my-8" key={invoice.id}>
         <div className="flex justify-between items-center p-6 border-b border-slate-200 print:hidden">
           <h2 className="text-2xl font-bold text-slate-900">Invoice Preview</h2>
           <div className="flex gap-2">
